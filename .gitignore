@@ -1,0 +1,16 @@
+# Arquivos de bytecode
+*.pyc
+*.pyo
+*.pyod
+__pycache__/*
+
+# Configuração e logs
+*.log
+*.tmp
+settings.cfg
+
+# Cache
+*.cache
+.DS_Store
+.env
+
