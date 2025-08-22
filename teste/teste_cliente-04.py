@@ -10,9 +10,8 @@ steps = [
         Remover na tabela 'ATIVOS' os colaboradores de férias.
         Renomear a coluna 'CADASTRO' para 'MATRICULA' na tabela 'EXTERIOR'.
         Remover na tabela BASE_DIAS_UTEIS primeiro registro. 
-        Remomear a coluna 'Unnamed_0' para 'BASE_DIAS_UTEIS' na tabela 'DIAS_UTEIS'.
-        Renomear a primeira coluna da tabela 'DIAS_UTEIS' para 'SINDICATO'.  
-
+        Renomear a primeira coluna da tabela 'BASE_DIAS_UTEIS' para 'SINDICATO'.  
+        Renomear a segunda coluna da tabela 'BASE_DIAS_UTEIS' para 'DIAS_UTEIS'.
      '''
      },
 
