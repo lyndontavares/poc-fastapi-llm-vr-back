@@ -12,16 +12,25 @@ steps = [
         Remover na tabela BASE_DIAS_UTEIS primeiro registro. 
         Renomear a primeira coluna da tabela 'BASE_DIAS_UTEIS' para 'SINDICATO'.  
         Renomear a segunda coluna da tabela 'BASE_DIAS_UTEIS' para 'DIAS_UTEIS'.
-     '''
+        Renomear a coluna 'UNNAMED_3' para 'SITUACAO' na tabela 'ADMINSSÂO_ABRIL'.
+        Renomear a coluna 'UNNAMED_3' para 'SITUACAO' na tabela 'AFASTAMENTOS'.
+        Renomear a coluna 'MATRICULA_' para 'MATRICULA' na tabela 'DESLIGADOS'.
+      '''
      },
 
     {"agent": "executor", "prompt": ""},   # usa o último SQL gerado
 
     {"agent": "sql_generator", "prompt":
      '''
-         Lista a tabela de EXTERIOR (Não use LIMIT)
+
+        Crie uma lista contento ESTÁGIO, ATIVOS, APRENDIZ e ATIVOS. Adicione as colunas MATRICULA e TITULO_DO_CARGO. 
+        Adicione uma coluna para identicar a tabela de origem.
+ 
+
      '''},
+
     {"agent": "executor", "prompt": ""},   # usa o último SQL gerado
+
     {"agent": "formatter", "prompt": "csv"}
 ]
 

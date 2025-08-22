@@ -109,17 +109,29 @@ def agent_execute_sql(sql: str):
 
 def agent_formatter(df: pd.DataFrame, fmt: str = "csv"):
     """Agente formatter - converte DataFrame para saída desejada"""
-    logger.info(f"Formatando: {str}")
+    logger.info(f"Formatando em {fmt}")
     if fmt == "json":
-        logger.info(f"retorno: {df.to_json(orient="records")}")
-        return df.to_json(orient="records")
-    elif fmt == "table":
-        logger.info(f"retorno: {df.to_string(index=False)}")
-        return df.to_string(index=False)
-    else:
-        logger.info(f"retorno: {df.to_csv(index=False)}")
-        return df.to_csv(index=False)
+        result = df.to_json(orient="records", force_ascii=False)
+        logger.info(f"retorno json: {result}")
+        return result
 
+    elif fmt == "table":
+        result = df.to_string(index=False)
+        logger.info(f"retorno table: {result}")
+        return result
+
+    elif fmt == "xlsx":
+        # gera excel em memória
+        buffer = io.BytesIO()
+        df.to_excel(buffer, index=False, engine="openpyxl")
+        buffer.seek(0)
+        logger.info(f"retorno xlsx: {len(buffer.getvalue())} bytes")
+        return buffer.getvalue()
+
+    else:  # default csv
+        result = df.to_csv(index=False)
+        logger.info(f"retorno csv: {result}")
+        return result
 # ==========================================================
 # ENDPOINT MULTI-AGENTE
 # ==========================================================
