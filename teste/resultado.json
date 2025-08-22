@@ -2,15 +2,15 @@
   "results": [
     {
       "agent": "sql_generator",
-      "prompt": "\n        Renomear a coluna 'UNNAMED_2' para 'SITUACAO' na tabela 'EXTERIOR'.\n        Remover na tabela 'ATIVOS' os colaboradores de férias.\n        Renomear a coluna 'CADASTRO' para 'MATRICULA' na tabela 'EXTERIOR'.\n     ",
-      "output": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n```"
+      "prompt": "\n        Renomear a coluna 'UNNAMED_2' para 'SITUACAO' na tabela 'EXTERIOR'.\n        Remover na tabela 'ATIVOS' os colaboradores de férias.\n        Renomear a coluna 'CADASTRO' para 'MATRICULA' na tabela 'EXTERIOR'.\n        Remover na tabela BASE_DIAS_UTEIS primeiro  reistro. \n     ",
+      "output": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\n\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\n\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n\nDELETE FROM BASE_DIAS_UTEIS WHERE ROWID = (SELECT MIN(ROWID) FROM BASE_DIAS_UTEIS);\n```"
     },
     {
       "agent": "executor",
-      "prompt": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n```",
+      "prompt": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\n\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\n\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n\nDELETE FROM BASE_DIAS_UTEIS WHERE ROWID = (SELECT MIN(ROWID) FROM BASE_DIAS_UTEIS);\n```",
       "output": [
         {
-          "Executado": "DELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS)"
+          "Executado": "DELETE FROM BASE_DIAS_UTEIS WHERE ROWID = (SELECT MIN(ROWID) FROM BASE_DIAS_UTEIS)"
         }
       ]
     },
