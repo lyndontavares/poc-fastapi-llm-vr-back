@@ -1,4 +1,9 @@
-
+""" TESTES:
+        Crie uma lista contento ESTÁGIO, ATIVOS, APRENDIZ e ATIVOS. Adicione as colunas MATRICULA e TITULO_DO_CARGO. 
+        Adicione uma coluna para identicar a tabela de origem.
+"""
+    
+    
     prompt = [
         " Agente: Você é um especialista em processamento e análise de dados de recursos humanos,   "
         " com o objetivo de gerar uma base de dados precisa para o envio de benefícios de Vale-Refeição "
