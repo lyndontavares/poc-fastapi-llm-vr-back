@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "agent": "sql_generator",
+      "prompt": "\n        Renomear a coluna 'UNNAMED_2' para 'SITUACAO' na tabela 'EXTERIOR'.\n        Remover na tabela 'ATIVOS' os colaboradores de férias.\n        Renomear a coluna 'CADASTRO' para 'MATRICULA' na tabela 'EXTERIOR'.\n     ",
+      "output": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n```"
+    },
+    {
+      "agent": "executor",
+      "prompt": "```sql\nALTER TABLE EXTERIOR RENAME COLUMN UNNAMED_2 TO SITUACAO;\nDELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS);\nALTER TABLE EXTERIOR RENAME COLUMN CADASTRO TO MATRICULA;\n```",
+      "output": [
+        {
+          "Executado": "DELETE FROM ATIVOS WHERE MATRICULA IN (SELECT MATRICULA FROM FÉRIAS)"
+        }
+      ]
+    },
+    {
+      "agent": "sql_generator",
+      "prompt": "\n         Lista a tabela de EXTERIOR (Não use LIMIT)\n     ",
+      "output": "```sql\nSELECT * FROM EXTERIOR;\n```"
+    },
+    {
+      "agent": "executor",
+      "prompt": "```sql\nSELECT * FROM EXTERIOR;\n```",
+      "output": [
+        {
+          "MATRICULA": 29306,
+          "VALOR": 28.0,
+          "SITUACAO": "desligado"
+        },
+        {
+          "MATRICULA": 31227,
+          "VALOR": 554.4,
+          "SITUACAO": "RETORNOU DO EXTERIOR - devido o pgto"
+        },
+        {
+          "MATRICULA": 32967,
+          "VALOR": 660.0,
+          "SITUACAO": "removido"
+        },
+        {
+          "MATRICULA": 34884,
+          "VALOR": 554.4,
+          "SITUACAO": null
+        }
+      ]
+    },
+    {
+      "agent": "formatter",
+      "prompt": "csv",
+      "output": "MATRICULA,VALOR,SITUACAO\n29306,28.0,desligado\n31227,554.4,RETORNOU DO EXTERIOR - devido o pgto\n32967,660.0,removido\n34884,554.4,\n"
+    }
+  ]
+}

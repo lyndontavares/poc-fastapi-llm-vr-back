@@ -1,198 +1,189 @@
-import os
+import io
 import zipfile
 import tempfile
-import shutil
 import pandas as pd
-from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
-from sqlalchemy import create_engine, String
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents.agent_types import AgentType
-from langchain_experimental.agents import create_pandas_dataframe_agent
-import io
+from langchain.sql_database import SQLDatabase
+import logging
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+import json
+import re
 
-# Carregar variáveis de ambiente do arquivo .env
+# --- Logging ---
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.INFO)
+logger.info(f"--- Iniciando FastAPI com Google Generative AI --")
+
+# --- API Key ---
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# Verifica se a API Key está configurada
 if not GOOGLE_API_KEY:
     raise ValueError(
-        "GOOGLE_API_KEY not found. Please set it in your .env file.")
+        "A variável de ambiente 'GOOGLE_API_KEY' não está definida.")
+genai.configure(api_key=GOOGLE_API_KEY)
 
-# Configuração da aplicação FastAPI
+# --- FastAPI ---
 app = FastAPI()
 
-# Configuração do LLM Gemini
-llm = ChatGoogleGenerativeAI(
-    model="models/gemini-1.5-flash-latest",
-    google_api_key=GOOGLE_API_KEY,
-    convert_system_message_to_human=True
-)
+# --- SQLite ---
+DATABASE_URL = "sqlite:///./uploaded_data4.db"
+engine = create_engine(DATABASE_URL, echo=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ==========================================================
+# AGENTES
+# ==========================================================
 
 
-@app.post('/batch_of_xsl_to_sqlite_with_chainlang_agent')
-async def process_batch(zip_file: UploadFile = File(...)):
-    """
-    Endpoint que aceita um arquivo ZIP, descompacta planilhas,
-    cria um banco de dados SQLite, consulta com um agente Gemini
-    e retorna uma planilha XLSX.
-    """
-    # 1. Validar o upload do arquivo
-    if not zip_file.filename.endswith('.zip'):
-        raise HTTPException(
-            status_code=400, detail="O arquivo deve ser no formato .zip")
-
-    # Criar diretórios temporários para descompactação e o banco de dados
-    temp_dir = tempfile.mkdtemp()
-    db_path = os.path.join(temp_dir, "vale_beneficios.sqlite")
-
-    try:
-        # 2. Descompactar o arquivo ZIP
-        zip_path = os.path.join(temp_dir, zip_file.filename)
-        # Salva o arquivo no diretório temporário
-        with open(zip_path, "wb") as f:
-            f.write(await zip_file.read())
-
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(temp_dir)
-
-        # 3. Conectar ao banco de dados SQLite
-        engine = create_engine(f'sqlite:///{db_path}')
-
-        # Obter a lista de arquivos de planilha
-        excel_files = [f for f in os.listdir(
-            temp_dir) if f.endswith(('.xls', '.xlsx'))]
-        if not excel_files:
-            raise HTTPException(
-                status_code=400, detail="Nenhum arquivo .xls ou .xlsx encontrado no arquivo ZIP.")
-
-        print("--- Criando tabelas a partir das planilhas ---")
-
-        # DataFrame que será usado pelo agente Pandas para demonstração
-        df_for_agent = None
-
-        # 4. Processar cada planilha e criar as tabelas
-        for excel_file in excel_files:
-            file_path = os.path.join(temp_dir, excel_file)
-            df = pd.read_excel(file_path)
-
-            # Remover colunas sem nome e renomear 'Cadastro'
-            df = df.dropna(axis=1, how='all')
-            df.columns = df.columns.astype(str).str.strip()
-            df = df.rename(columns={'Cadastro': 'MATRICULA'})
-
-            # Use a primeira planilha encontrada para o agente Pandas
-            if df_for_agent is None:
-                df_for_agent = df.copy()
-
-            # Acessar nome da tabela e tratar caracteres especiais
-            table_name = os.path.splitext(excel_file)[0]
-            table_name = table_name.replace(" ", "_").replace("-", "_").upper()
-
-            # Lógica para criar a tabela com chave primária se existir 'MATRICULA'
-            if 'MATRICULA' in df.columns:
-                print(
-                    f"Criando tabela '{table_name}' com MATRICULA como chave primária.")
-                df.to_sql(table_name, con=engine, index=False,
-                          if_exists='replace', dtype={'MATRICULA': String(255)})
-            else:
-                print(f"Criando tabela '{table_name}' sem chave primária.")
+def agent_extract_zip(zip_file: UploadFile):
+    """Agente extractor - carrega planilhas XLSX para SQLite"""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        with zipfile.ZipFile(zip_file.file, "r") as zip_ref:
+            zip_ref.extractall(tmpdirname)
+        for file in zip_ref.namelist():
+            if file.endswith(".xlsx"):
+                df = pd.read_excel(f"{tmpdirname}/{file}")
+                df.columns = [str(col).replace(
+                    " ", "_").replace(".", "_").replace(":", "").upper() for col in df.columns]
+                table_name = file.replace(".xlsx", "").replace(
+                    " ", "_").replace(".", "_").upper()
                 df.to_sql(table_name, con=engine,
-                          index=False, if_exists='replace')
+                          if_exists="replace", index=False)
+                logger.info(
+                    f"Planilha '{file}' importada como tabela '{table_name}'.")
 
-            print(
-                f"Dados do arquivo '{excel_file}' inseridos na tabela '{table_name}'.")
 
-        if df_for_agent is None:
-            raise HTTPException(
-                status_code=500, detail="Não foi possível criar o DataFrame para o agente.")
+def agent_generate_sql(prompt: str, schema: str):
+    """Agente sql_generator - gera SQL puro com Gemini"""
+    llm = ChatGoogleGenerativeAI(
+        model="models/gemini-1.5-flash-latest",
+        temperature=0
+    )
+    full_prompt = f"""
+    Você é um especialista em SQL (SQLite).
+    Responda SOMENTE com SQL válido.
+    Esquema de tabelas:
+    {schema}
 
-        # 5. Criar o agente LangChain (Pandas Agent)
-        print("\n--- Agente Gemini (Pandas) criado. Executando consulta... ---")
-        agent_executor = create_pandas_dataframe_agent(
-            llm=llm,
-            df=df_for_agent,
-            agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-            verbose=True,  # Mostra o raciocínio do agente
-            return_intermediate_steps=True,
-            allow_dangerous_code=True  # Opt-in para executar código Python
-        )
+    Instrução:
+    {prompt}
+    """
+    result = llm.invoke(full_prompt)
+    sql = result.content.strip()
+    # remove prefixos se aparecerem
+    for prefix in ["Answer:", "SQLQuery:", "Resposta:"]:
+        if sql.startswith(prefix):
+            sql = sql[len(prefix):].strip()
+    return sql
 
-        # 6. Exemplo de consulta em linguagem natural
-        # Este prompt é mais robusto e não falha se as colunas não existirem
-        prompt_query = (
 
-            "Junte dados de APRENDIZ, ESTÁGIO e EXTERIOR para gerar um relatório "
-            "Responda apenas com o DataFrame final, sem explicações adicionais."
-            "Retorne o resultado como uma planiha .XLSX. Não retorne strings ou blocos de código."
-        )
-
-        agent_result = agent_executor.invoke(prompt_query)
-
-        # 7. Extrair o DataFrame de resultado do agente
-        raw_output = agent_result.get('output', None)
-
-        result_df = None
-
-        # LÓGICA ATUALIZADA: Tenta extrair e executar o código
-        if isinstance(raw_output, str):
-            # Tenta encontrar um bloco de código Python com ou sem a formatação ```
-            code_block = raw_output.replace(
-                "```python", "").replace("```", "").strip()
-
-            if code_block:
-                print("Saída do agente contém código. Tentando executar...")
-                local_scope = {'pd': pd, 'np': __import__(
-                    'numpy'), 'df': df_for_agent}
-
+def agent_execute_sql(sql: str):
+    """Agente executor - executa SQL"""
+    sql = sql.replace("```sql", "").replace("```", "")
+    logger.info(f"Executando SQL: {sql}")
+    commands = [c.strip() for c in sql.split(";") if c.strip()]
+    results = []
+    with engine.begin() as conn:
+        for cmd in commands:
+            try:
+                res = conn.execute(text(cmd))
                 try:
-                    # Executa o código e tenta capturar o DataFrame resultante
-                    exec(code_block, {}, local_scope)
-                    for name, var in local_scope.items():
-                        if isinstance(var, pd.DataFrame):
-                            result_df = var
-                            break
-                except Exception as e:
-                    print(
-                        f"Aviso: Erro ao executar o código do agente. Usando DataFrame original. Erro: {e}")
+                    rows = res.fetchall()
+                    if rows:
+                        df = pd.DataFrame(rows, columns=res.keys())
+                        results.append(df)
+                except Exception:
+                    results.append(pd.DataFrame([{"Executado": cmd}]))
+            except Exception as e:
+                logger.error(f"Erro ao executar comando: {e}")
+                results.append(pd.DataFrame(
+                    [{"Erro": str(e), "Comando": cmd}]))
+    return results
+
+
+def agent_formatter(df: pd.DataFrame, fmt: str = "csv"):
+    """Agente formatter - converte DataFrame para saída desejada"""
+    logger.info(f"Formatando: {str}")
+    if fmt == "json":
+        logger.info(f"retorno: {df.to_json(orient="records")}")
+        return df.to_json(orient="records")
+    elif fmt == "table":
+        logger.info(f"retorno: {df.to_string(index=False)}")
+        return df.to_string(index=False)
+    else:
+        logger.info(f"retorno: {df.to_csv(index=False)}")
+        return df.to_csv(index=False)
+
+# ==========================================================
+# ENDPOINT MULTI-AGENTE
+# ==========================================================
+
+
+@app.post("/multi_agent_zip")
+async def multi_agent_zip(
+    file: UploadFile = File(...),
+    steps: str = Form(...)  # JSON: lista de {agent, prompt}
+):
+    # 1. Extrair planilhas
+    agent_extract_zip(file)
+
+    # Montar schema para o agente de SQL
+    schema = ""
+    with engine.begin() as conn:
+        tables = conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table'")).fetchall()
+        for (tname,) in tables:
+            cols = conn.execute(text(f"PRAGMA table_info({tname})")).fetchall()
+            colnames = [c[1] for c in cols]
+            schema += f"Tabela: {tname} | Colunas: {colnames}\n"
+
+    steps_list = json.loads(steps)
+    results = []
+    last_result = None
+
+    for idx, step in enumerate(steps_list, start=1):
+        agent = step.get("agent")
+        prompt = step.get("prompt")
+
+        logger.info(f"[{idx}] Executando agente={agent}, prompt={prompt}")
+
+        if agent == "sql_generator":
+            sql = agent_generate_sql(prompt, schema)
+            last_result = sql
+            results.append({"agent": agent, "prompt": prompt, "output": sql})
+
+        elif agent == "executor":
+            sql = prompt if prompt.strip().upper().startswith(
+                ("SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "CREATE")) else last_result
+            res_dfs = agent_execute_sql(sql)
+            if res_dfs:
+                last_result = res_dfs[-1]
+                results.append({"agent": agent, "prompt": sql, "output": last_result.head(
+                    5).to_dict(orient="records")})
             else:
-                print(
-                    f"Aviso: Saída do agente não é um bloco de código. Usando DataFrame original. Resposta: '{raw_output}'")
+                last_result = pd.DataFrame([{"Executado": "OK"}])
+                results.append({"agent": agent, "prompt": sql, "output": "OK"})
 
-        # Fallback: Se o agente não retornou um DataFrame válido, usa o DataFrame original
-        if not isinstance(result_df, pd.DataFrame) or result_df.empty:
-            print(
-                "Nenhum DataFrame válido foi gerado. Usando o DataFrame da primeira planilha como fallback.")
-            result_df = df_for_agent
+        elif agent == "formatter":
+            logger.info(f"formatter: last_result {last_result}")
+            if isinstance(last_result, pd.DataFrame):
+                formatted = agent_formatter(last_result, prompt)
+                results.append(
+                    {"agent": agent, "prompt": prompt, "output": formatted})
+                last_result = formatted
+            else:
+                results.append({"agent": agent, "prompt": prompt,
+                               "error": "Nada para formatar"})
 
-        # 8. Renomear as colunas e gerar o XLSX
-        # Utiliza as colunas do DataFrame resultante para evitar erros
-        output_df = result_df
+        else:
+            results.append({"agent": agent, "prompt": prompt,
+                           "error": "Agente desconhecido"})
 
-        # Usar um buffer de memória para o arquivo XLSX
-        excel_buffer = io.BytesIO()
-        output_df.to_excel(excel_buffer, index=False, engine='openpyxl')
-        excel_buffer.seek(0)
-
-        print("\n--- Análise concluída. Gerando planilha de retorno. ---")
-        return StreamingResponse(
-            excel_buffer,
-            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            headers={
-                "Content-Disposition": "attachment; filename=relatorio_final.xlsx"}
-        )
-
-    except Exception as e:
-        print(f"Ocorreu um erro: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        # Limpar diretórios temporários
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
-
-""" if __name__ == '__main__':
-    # Execute o servidor FastAPI usando Uvicorn
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) """
+    # resposta final
+    return {"results": results}

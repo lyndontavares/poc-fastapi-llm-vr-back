@@ -1,0 +1,44 @@
+import requests
+import json
+
+url = "http://127.0.0.1:8000/multi_agent_zip"
+
+steps = [
+    {"agent": "sql_generator", "prompt":
+     '''
+        Renomear a coluna 'UNNAMED_2' para 'SITUACAO' na tabela 'EXTERIOR'.
+        Remover na tabela 'ATIVOS' os colaboradores de férias.
+        Renomear a coluna 'CADASTRO' para 'MATRICULA' na tabela 'EXTERIOR'.
+     '''
+     },
+
+    {"agent": "executor", "prompt": ""},   # usa o último SQL gerado
+
+    {"agent": "sql_generator", "prompt":
+     '''
+         Lista a tabela de EXTERIOR (Não use LIMIT)
+     '''},
+    {"agent": "executor", "prompt": ""},   # usa o último SQL gerado
+    {"agent": "formatter", "prompt": "csv"}
+]
+
+files = {"file": open("Dados.zip", "rb")}
+data = {"steps": json.dumps(steps)}
+
+result = requests.post(url, files=files, data=data)
+
+# print(result.json())
+
+last_output = result.json()["results"][-1]["output"]
+
+# print(last_output.json())
+
+with open("resultado.json", "w", encoding="utf-8") as f:
+    json.dump(result.json(), f, ensure_ascii=False, indent=2)
+
+# RESULTADO FINAL COM DADOS DE VR/VA
+filename = "VR_MENSAL_05_2025.csv"
+
+# Salvar em arquivo
+with open(filename, "w", encoding="utf-8") as f:
+    f.write(last_output)

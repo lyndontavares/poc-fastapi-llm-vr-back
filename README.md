@@ -1,8 +1,5 @@
 # poc-fastapi-llm-vr-back
 
-https://chatgpt.com/c/6849f427-8f94-800a-a4e1-36ef50483bb2
-
-
 POC Backend API Fastapi -Automação de Vale Tramsporte
 
 Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
@@ -22,13 +19,20 @@ pip install --upgrade --force-reinstall -r requirements.txt
 
 ```
 cd app
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8000 --log-level info
 fastapi run main.py --port 8000
+```
+
+## Teste Bash
+
+```
+python teste_cliente.py
 ```
 
 ## Swagger
 
 ```
+cd app
 http://127.0.0.1:8000/docs
 ```
 
