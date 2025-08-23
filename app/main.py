@@ -32,7 +32,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 app = FastAPI()
 
 # --- SQLite ---
-DATABASE_URL = "sqlite:///./uploaded_data4.db"
+DATABASE_URL = "sqlite:///./uploaded_data.db"
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -51,6 +51,7 @@ def agent_extract_zip(zip_file: UploadFile):
                 df = pd.read_excel(f"{tmpdirname}/{file}")
                 df.columns = [str(col).replace(
                     " ", "_").replace(".", "_").replace(":", "").upper() for col in df.columns]
+                df.columns = df.columns.str.strip().str.replace(u"\xa0", "", regex=True)
                 table_name = file.replace(".xlsx", "").replace(
                     " ", "_").replace(".", "_").upper()
                 df.to_sql(table_name, con=engine,
@@ -86,7 +87,7 @@ def agent_generate_sql(prompt: str, schema: str):
 def agent_execute_sql(sql: str):
     """Agente executor - executa SQL"""
     sql = sql.replace("```sql", "").replace("```", "")
-    logger.info(f"Executando SQL: {sql}")
+    # logger.info(f"Executando SQL 2: {sql}")
     commands = [c.strip() for c in sql.split(";") if c.strip()]
     results = []
     with engine.begin() as conn:
@@ -138,7 +139,7 @@ def agent_formatter(df: pd.DataFrame, fmt: str = "csv"):
 
 
 @app.post("/multi_agent_zip")
-async def multi_agent_zip(
+def multi_agent_zip(
     file: UploadFile = File(...),
     steps: str = Form(...)  # JSON: lista de {agent, prompt}
 ):
@@ -171,8 +172,9 @@ async def multi_agent_zip(
             results.append({"agent": agent, "prompt": prompt, "output": sql})
 
         elif agent == "executor":
+            logger.info(f">>EXECUTE: {prompt}")
             sql = prompt if prompt.strip().upper().startswith(
-                ("SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "CREATE")) else last_result
+                ("SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "CREATE", "PRAGMA")) else last_result
             res_dfs = agent_execute_sql(sql)
             if res_dfs:
                 last_result = res_dfs[-1]
