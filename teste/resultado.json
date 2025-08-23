@@ -2,15 +2,15 @@
   "results": [
     {
       "agent": "sql_generator",
-      "prompt": "\n        Interar sobre desligados e remover os colaboradores correspondentes de ATIVOS se campo comunicado de desligamento for 'OK'\n     ",
-      "output": "```sql\nDELETE FROM ATIVOS\nWHERE MATRICULA IN (SELECT MATRICULA_ FROM DESLIGADOS WHERE COMUNICADO_DE_DESLIGAMENTO = 'OK');\n```"
+      "prompt": "\n \n       Remover na tabela 'ATIVOS' os colaboradores com situacao diferente de Trabalhando'.\n\n     ",
+      "output": "```sql\nDELETE FROM ATIVOS WHERE DESC__SITUACAO <> 'Trabalhando';\n```"
     },
     {
       "agent": "executor",
-      "prompt": "```sql\nDELETE FROM ATIVOS\nWHERE MATRICULA IN (SELECT MATRICULA_ FROM DESLIGADOS WHERE COMUNICADO_DE_DESLIGAMENTO = 'OK');\n```",
+      "prompt": "```sql\nDELETE FROM ATIVOS WHERE DESC__SITUACAO <> 'Trabalhando';\n```",
       "output": [
         {
-          "Executado": "DELETE FROM ATIVOS\nWHERE MATRICULA IN (SELECT MATRICULA_ FROM DESLIGADOS WHERE COMUNICADO_DE_DESLIGAMENTO = 'OK')"
+          "Executado": "DELETE FROM ATIVOS WHERE DESC__SITUACAO <> 'Trabalhando'"
         }
       ]
     }
