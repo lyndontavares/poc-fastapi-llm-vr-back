@@ -91,8 +91,8 @@ steps = [
                 DIAS com DIAS da BASE_DIAS_UTEIS - subtraido o total de dias de férias,
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
-                CUSTO_EMPRESA calculado como TOTAL_VR * 1.12 (2 decimais),
-                DESCONTO_PROFISSIONAL calculado como TOTAL_VR * 0.02 (2 decimais),
+                CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
+                DESCONTO_PROFISSIONAL calculado como TOTAL_VR * 0.2 (2 decimais),
                 OBS_GERAL com valor fixo 'VR MENSAL MAIO/2025';
          
         ### Passo 8: Após gerar o SQL, o agente faz a excução e atuliza base.
