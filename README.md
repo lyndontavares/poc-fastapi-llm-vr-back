@@ -33,6 +33,9 @@ python teste_cliente.py
 
 ![](assets/vr.png)
 
+</div>
+
+
 # Prompt — Automação da compra de VR/VA (Restrito)
 
 ## Contexto e Objetivo
