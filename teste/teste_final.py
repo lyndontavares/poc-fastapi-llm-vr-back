@@ -87,7 +87,7 @@ steps = [
                 MATRICULA vindo de ELEGIVEIS,
                 ADMISSAO vindo da coluna ADMISSAO da ADMISSAO_ABRIL,
                 SINDICATO vindo de SINDICATO da ELEGIVEIS, 
-                COMPETENCIA com valor fixo '2025-05-01',
+                COMPETENCIA com valor fixo '01/05/2025',
                 DIAS com DIAS da BASE_DIAS_UTEIS - subtraido o total de dias de férias,
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
@@ -110,11 +110,11 @@ steps = [
         ### Passo 10: Listar Retorno
         ### Com a consulta montada acima, conseguimos formatar o retorno para CSV.
 
-        Retorne todo o conteúdo da tabela VR_MENSAL.
-        Apenas escreva a SQL, nada mais.  
-
-        ## Adicione alias para colunas coluna que contiver (_) trocando (_) por espaço.
+        Retorne todo o conteúdo da tabela VR_MENSAL. 
         
+        ## Adicione alias para colunas coluna que contiver (_) trocando (_) por espaço.
+        ## Apenas escreva a SQL, nada mais.      
+
      '''},
     {"agent": "executor", "prompt": ""},
 

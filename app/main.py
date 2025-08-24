@@ -108,6 +108,11 @@ def agent_generate_sql(prompt: str, schema: str):
     7. Responda SOMENTE com SQL válido. Sem comentários adicionais.
     8. Use alias para colunas no retorno de queries.
 
+     # REGRAS IMPORTANTES PARA DATAS:
+    1. Todas as colunas de datas devem ser formatadas como DD/MM/YYYY.
+        - SQLite: usar strftime('%d/%m/%Y', coluna)
+    2. Nunca retorne datas em outro formato.
+
     # Shema
 
     {schema}
