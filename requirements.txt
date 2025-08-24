@@ -1,6 +1,8 @@
 fastapi==0.111.0
 uvicorn==0.29.0
-pandas==2.2.2
+pandas==2.2.3
 python-dotenv==1.0.1
 sqlalchemy==2.0.30
 openpyxl==3.1.2
+langchain-mistralai==0.2.11
+langchain_anthropic==0.3.19

@@ -1,12 +1,15 @@
 import io
+import unicodedata
 import zipfile
 import tempfile
+from langchain_mistralai import ChatMistralAI
 import pandas as pd
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_anthropic import ChatAnthropic
 from langchain.sql_database import SQLDatabase
 import logging
 import os
@@ -28,6 +31,10 @@ if not GOOGLE_API_KEY:
         "A variável de ambiente 'GOOGLE_API_KEY' não está definida.")
 genai.configure(api_key=GOOGLE_API_KEY)
 
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
 # --- FastAPI ---
 app = FastAPI()
 
@@ -35,6 +42,21 @@ app = FastAPI()
 DATABASE_URL = "sqlite:///./uploaded_data.db"
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+# Próxima versão - Normalização feita por agente
+def normalize(text: str) -> str:
+    text = text.replace(".xlsx", "").replace(" ", "_").replace(".", "_").replace("/", "_").replace(
+        ":", "").replace(u"\xa0", "").upper()
+
+    text = text[:-1] if text.endswith("_") else text
+
+    # Normaliza e remove acentos
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', text)
+        if unicodedata.category(c) != 'Mn'
+    )
+
 
 # ==========================================================
 # AGENTES
@@ -49,11 +71,8 @@ def agent_extract_zip(zip_file: UploadFile):
         for file in zip_ref.namelist():
             if file.endswith(".xlsx"):
                 df = pd.read_excel(f"{tmpdirname}/{file}")
-                df.columns = [str(col).replace(
-                    " ", "_").replace(".", "_").replace(":", "").upper() for col in df.columns]
-                df.columns = df.columns.str.strip().str.replace(u"\xa0", "", regex=True)
-                table_name = file.replace(".xlsx", "").replace(
-                    " ", "_").replace(".", "_").upper()
+                df.columns = [normalize(str(col)) for col in df.columns]
+                table_name = normalize(file)
                 df.to_sql(table_name, con=engine,
                           if_exists="replace", index=False)
                 logger.info(
@@ -62,18 +81,41 @@ def agent_extract_zip(zip_file: UploadFile):
 
 def agent_generate_sql(prompt: str, schema: str):
     """Agente sql_generator - gera SQL puro com Gemini"""
-    llm = ChatGoogleGenerativeAI(
-        model="models/gemini-1.5-flash-latest",
-        temperature=0
+
+    # llm = ChatGoogleGenerativeAI(
+    #     model="models/gemini-1.5-flash-latest",
+    #     temperature=0
+    # )
+
+    llm = ChatMistralAI(
+        model="mistral-small-2503",
+        temperature=0.0
     )
+
     full_prompt = f"""
-    Você é um especialista em SQL (SQLite).
-    Responda SOMENTE com SQL válido.
-    Esquema de tabelas:
+
+    # AGENTE: 
+    Você é um assistente SQL para SQLite.
+    Sua tarefa é gerar queries SQLISQLite válidas **apenas** com base no schema fornecido.
+
+    # REGRAS IMPORTANTES:
+    1. Use somente as tabelas e colunas existentes no schema.
+    2. Se houver ambiguidade entre nomes de colunas ou tabelas, escolha a que mais se aproxima semanticamente dentro do schema.
+    3. Nunca invente nomes que não existam no schema.
+    4. Se não encontrar nenhuma correspondência, responda com: "Coluna/Tabela não encontrada no schema".
+    5. O resultado deve ser apenas a query SQL, sem explicações, compatível lcom SQLite.
+    6. Não insira barras invertidas (\) antes dos underscores
+    7. Responda SOMENTE com SQL válido. Sem comentários adicionais.
+    8. Use alias para colunas no retorno de queries.
+
+    # Shema
+
     {schema}
 
-    Instrução:
+    # Instrução:
+
     {prompt}
+
     """
     result = llm.invoke(full_prompt)
     sql = result.content.strip()
@@ -86,8 +128,10 @@ def agent_generate_sql(prompt: str, schema: str):
 
 def agent_execute_sql(sql: str):
     """Agente executor - executa SQL"""
+    logger.info(f">>EXECUTAR SQL: {sql}")
     sql = sql.replace("```sql", "").replace("```", "")
-    # logger.info(f"Executando SQL 2: {sql}")
+    sql = sql.replace("```SQL:", "").replace("```", "")
+
     commands = [c.strip() for c in sql.split(";") if c.strip()]
     results = []
     with engine.begin() as conn:
@@ -138,14 +182,7 @@ def agent_formatter(df: pd.DataFrame, fmt: str = "csv"):
 # ==========================================================
 
 
-@app.post("/multi_agent_zip")
-def multi_agent_zip(
-    file: UploadFile = File(...),
-    steps: str = Form(...)  # JSON: lista de {agent, prompt}
-):
-    # 1. Extrair planilhas
-    agent_extract_zip(file)
-
+def montar_schema():
     # Montar schema para o agente de SQL
     schema = ""
     with engine.begin() as conn:
@@ -155,6 +192,17 @@ def multi_agent_zip(
             cols = conn.execute(text(f"PRAGMA table_info({tname})")).fetchall()
             colnames = [c[1] for c in cols]
             schema += f"Tabela: {tname} | Colunas: {colnames}\n"
+    # logger.info(f">>SCHEMA: {schema}")
+    return schema
+
+
+@app.post("/multi_agent_zip")
+def multi_agent_zip(
+    file: UploadFile = File(...),
+    steps: str = Form(...)  # JSON: lista de {agent, prompt}
+):
+    # 1. Extrair planilhas
+    agent_extract_zip(file)
 
     steps_list = json.loads(steps)
     results = []
@@ -167,12 +215,12 @@ def multi_agent_zip(
         logger.info(f"[{idx}] Executando agente={agent}, prompt={prompt}")
 
         if agent == "sql_generator":
-            sql = agent_generate_sql(prompt, schema)
+            sql = agent_generate_sql(prompt, montar_schema())
             last_result = sql
             results.append({"agent": agent, "prompt": prompt, "output": sql})
 
         elif agent == "executor":
-            logger.info(f">>EXECUTE: {prompt}")
+            logger.info(f">>EXECUTAR PROMPT: {prompt}")
             sql = prompt if prompt.strip().upper().startswith(
                 ("SELECT", "INSERT", "UPDATE", "DELETE", "ALTER", "CREATE", "PRAGMA")) else last_result
             res_dfs = agent_execute_sql(sql)
