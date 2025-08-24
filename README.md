@@ -388,7 +388,3 @@ _Orquestração de múltiplos agentes para processamento de planilhas e SQL_
 - **Rápido de integrar**: Python + FastAPI + LangChain facilita extensões.
     
 - **Escalável**: possível migrar SQLite para Postgres ou outro RDBMS com mínimo esforço.
-
-https://docs.google.com/document/d/1F9UdKW9WYXOJ8zsHDeIavtEUOHXXtjTg9OaiY1k5NDU/edit?tab=t.0#heading=h.x1yrjvitqxs0
-
-https://chatgpt.com/c/68a84e72-e0d8-8333-a26e-93622ab8e314
