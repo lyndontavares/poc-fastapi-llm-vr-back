@@ -252,3 +252,143 @@ Defina variáveis por colaborador `i`:
     - Exportar em **.xlsx** na aba “VR Mensal {AAAA.MM}”.
         
     - Se existirem `flag_validacao = True`, gerar aba adicional **“Pendências_Validação”** com detalhes.
+
+
+# **Apresentação – Endpoint `multi_agent_zip`**
+
+---
+
+## **Slide 1 – Título**
+
+**Endpoint Multi-Agent ZIP**  
+_Orquestração de múltiplos agentes para processamento de planilhas e SQL_
+
+- Permite upload de arquivos ZIP contendo várias planilhas Excel.
+    
+- Executa prompts direcionados a diferentes agentes de forma encadeada ou isolada.
+    
+- Retorna resultados em CSV, JSON ou tabelas processadas.
+    
+
+---
+
+## **Slide 2 – Objetivo da Solução**
+
+- Automatizar **processamento de dados tabulares** via prompts de linguagem natural.
+    
+- Suportar **múltiplas etapas**: geração de SQL, execução de comandos, formatação de outputs.
+    
+- Garantir **flexibilidade e extensibilidade** para integração com outros agentes.
+    
+- Minimizar necessidade de intervenção manual no tratamento de planilhas e bancos de dados.
+    
+
+---
+
+## **Slide 3 – Estratégia Multi-Agent**
+
+**Fluxo de execução:**
+
+1. **Recepção do ZIP** → carregamento de planilhas para SQLite.
+    
+2. **Encadeamento de prompts** → cada prompt pode ser direcionado a um agente específico:
+    
+    - `sql_generator`: gera SQL a partir de linguagem natural.
+        
+    - `executor`: executa múltiplos comandos SQL no SQLite (SELECT, INSERT, DELETE, ALTER, CREATE).
+        
+    - `formatter`: formata resultados em CSV, JSON ou tabelas legíveis.
+        
+3. **Output final** → download do CSV ou retorno JSON.
+    
+
+**Benefícios:**
+
+- Separação clara de responsabilidades.
+    
+- Cada agente especializado em uma tarefa específica.
+    
+- Permite **substituir ou atualizar agentes sem quebrar o fluxo**.
+    
+
+---
+
+## **Slide 4 – Agentes e Recursos**
+
+|Agente|Função|Recursos|
+|---|---|---|
+|`sql_generator`|Converte prompt em SQL|LLM (Google Gemini / LangChain)|
+|`executor`|Executa SQL em SQLite|Multi-comando, transações, tratamento de erros|
+|`formatter`|Formata resultados|CSV, JSON, string tabelada, múltiplos SELECTs|
+|`multi_agent_orchestrator`|Coordena prompts|Permite encadeamento e escolha de agente-alvo|
+
+---
+
+## **Slide 5 – Stack Tecnológica**
+
+- **Backend**: FastAPI (Python 3.12)
+    
+- **Banco de dados**: SQLite (local, embutido)
+    
+- **LLM**: Google Gemini via LangChain (`ChatGoogleGenerativeAI`)
+    
+- **Bibliotecas auxiliares**: Pandas, SQLAlchemy, Zipfile, Tempfile
+    
+- **Deployment**: Docker opcional, pode rodar local ou cloud
+    
+- **Cliente**: Python requests ou front-end Angular/React
+    
+
+---
+
+## **Slide 6 – Flexibilidade da Solução**
+
+- Suporta **múltiplos prompts em sequência** com reinicialização de contexto.
+    
+- Permite **escolher o agente alvo** de cada prompt (`target_agent`).
+    
+- Trata **nomes de tabelas e colunas de forma segura** (removendo pontos, espaços e acentos).
+    
+- Pode processar **planilhas complexas** com múltiplas abas e formatos CSV/Excel.
+    
+- Output padronizado e configurável por agente, permitindo **integração direta com pipelines de BI ou ETL**.
+    
+
+---
+
+## **Slide 7 – Cenário de Uso**
+
+**Exemplo real:**
+
+1. Upload ZIP com planilhas financeiras.
+    
+2. Prompt 1 → `sql_generator` cria SQL para remover registros de férias.
+    
+3. Prompt 2 → `executor` aplica DELETE e ALTER TABLE.
+    
+4. Prompt 3 → `sql_generator` gera SELECT para listar tabela final.
+    
+5. Prompt 4 → `executor` executa SELECT.
+    
+6. Prompt 5 → `formatter` retorna CSV pronto para download.
+    
+
+**Benefício:** fluxo totalmente automatizado, seguro e auditável.
+
+---
+
+## **Slide 8 – Diferenciais**
+
+- **Orquestração Multi-Agent**: permite modularidade e manutenção independente de cada agente.
+    
+- **SQL seguro e executável**: evita problemas de nomes inválidos ou acentos.
+    
+- **Flexível**: suporta múltiplos formatos de planilhas e resultados.
+    
+- **Rápido de integrar**: Python + FastAPI + LangChain facilita extensões.
+    
+- **Escalável**: possível migrar SQLite para Postgres ou outro RDBMS com mínimo esforço.
+
+https://docs.google.com/document/d/1F9UdKW9WYXOJ8zsHDeIavtEUOHXXtjTg9OaiY1k5NDU/edit?tab=t.0#heading=h.x1yrjvitqxs0
+
+https://chatgpt.com/c/68a84e72-e0d8-8333-a26e-93622ab8e314
