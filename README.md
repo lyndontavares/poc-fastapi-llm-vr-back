@@ -29,6 +29,9 @@ fastapi run main.py --port 8000
 python teste_cliente.py
 ```
 
+<div align="center">
+
+![](assets/vr.png)
 
 # Prompt — Automação da compra de VR/VA (Restrito)
 
