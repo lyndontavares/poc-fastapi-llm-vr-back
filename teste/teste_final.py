@@ -128,7 +128,7 @@ steps = [
     #  {"agent": "formatter", "prompt": "table"}
     #  {"agent": "formatter", "prompt": "json"}
     ############################################
-    {"agent": "formatter", "prompt": "xlsx"}
+    {"agent": "formatter", "prompt": "csv"}
 ]
 
 ############################################################
