@@ -63,11 +63,12 @@ steps = [
         ### Já preparando para extração da query principal
 
         - Deletar todos os registro de ELEGIVEIS com comunicado de desligamento igual a 'OK' e 
-          data de desligamento menor ou igual 15/05/2025 na consuta por matricula em DESLIGADOS.
+          data de desligamento menor ou igual 15/04/2025 na consulta por matricula em DESLIGADOS.
         - Iterar sobre as bases de ESTAGIO, APRENDIZ, AFASTAMENTOS, EXTERIOR e remover todos 
           os registros correspondentes em ELEGIVEIS.
+        - Remover de ELEGIVEIS todos os colaboradores título cargo igual a DIRETOR.
         - Remover de ELEGIVEIS todos os colaboradores com situacao diferente de Trabalhando.
-        - Remover de ELEGIVEIS todos os colaboradores sem SINDICATO
+        - Remover de ELEGIVEIS todos os colaboradores sem SINDICATO.
                
      '''},
     {"agent": "executor", "prompt": ""},
@@ -89,7 +90,7 @@ steps = [
                 ADMISSAO vindo da coluna ADMISSAO da ADMISSAO_ABRIL,
                 SINDICATO vindo de SINDICATO da ELEGIVEIS, 
                 COMPETENCIA com valor fixo '01/05/2025',
-                DIAS com DIAS da BASE_DIAS_UTEIS - subtraido o total de dias de férias,
+                DIAS com  DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ),
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
                 CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
