@@ -131,7 +131,7 @@ steps = [
 ]
 
 ############################################################
-# Preparar e enviar os dados para o servidor
+# Preparar request para API de Cálculo de VR/VA
 ############################################################
 
 url = "http://127.0.0.1:8000/multi_agent_zip"
