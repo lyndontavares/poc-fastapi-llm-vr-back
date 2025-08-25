@@ -11,6 +11,37 @@ Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
 
 </div>
 
+## 🔑 Componentes da stack
+
+1. **Entrada**
+    
+    - `UploadFile` (FastAPI) recebe o ZIP
+        
+    - `Form(prompts)` → lista de instruções separadas por `||`
+        
+2. **Pré-processamento**
+    
+    - `zipfile` → descompacta planilhas
+        
+    - `pandas` → carrega em DataFrames
+        
+    - `sqlite3` / `SQLAlchemy` → registra tabelas no DB
+        
+3. **Camada Multi-Agente**
+    
+    - **Formatter Agent** → padroniza nomes de colunas / schema
+        
+    - **SQL Agent (Claude/Gemini/ChatGPT)** → gera SQL
+        
+    - **Executor** → executa query no SQLite
+        
+    - **Validator** → trata erros de nomes / tipagem
+        
+4. **Saída**
+    
+    - `pandas.DataFrame` → `to_csv()`
+        
+    - `StreamingResponse` → retorna CSV no HTTP
 
 ## Instale
 
