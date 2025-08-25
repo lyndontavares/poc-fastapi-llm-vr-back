@@ -62,10 +62,11 @@ uvicorn main:app --reload --port 8000 --log-level info
 fastapi run main.py --port 8000
 ```
 
-## Teste Bash
+## Teste
 
 ```
-python teste_cliente.py
+cd teste
+python teste_final.py
 ```
 
 <div align="center">
