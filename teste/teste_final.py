@@ -80,7 +80,7 @@ steps = [
 
         ### Passo 7: Montar SQL principal com regras de cálculo do VR/VA
 
-        Iterar sobre o relacinamento a seguir:
+        Iterar sobre o relacionamento a seguir:
             - ELEGIVEIS relaciona com tabela ADMISSAO_ABRIL pela coluna MATRICULA.
             - ELEGIVEIS relaciona com tabela BASE_DIAS_UTEIS pela coluna SINDICATO.
 
