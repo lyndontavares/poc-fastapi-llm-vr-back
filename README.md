@@ -46,11 +46,6 @@ Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
 ## Instale
 
 ```
-pip install -r requirements.txt
-```
-## Reinstale
-
-```
 pip install --upgrade --force-reinstall -r requirements.txt
 ```
 
