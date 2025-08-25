@@ -4,6 +4,14 @@ POC Backend API Fastapi -Automação de Vale Tramsporte
 
 Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
 
+
+<div align="center">
+
+![](assets/vr.png)
+
+</div>
+
+
 ## Instale
 
 ```
