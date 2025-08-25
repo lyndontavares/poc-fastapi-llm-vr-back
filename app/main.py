@@ -1,3 +1,4 @@
+import base64
 import io
 import unicodedata
 import zipfile
@@ -176,7 +177,8 @@ def agent_formatter(df: pd.DataFrame, fmt: str = "csv"):
         df.to_excel(buffer, index=False, engine="openpyxl")
         buffer.seek(0)
         logger.info(f"retorno xlsx: {len(buffer.getvalue())} bytes")
-        return buffer.getvalue()
+        encoded = base64.b64encode(buffer.read()).decode("utf-8")
+        return encoded
 
     else:  # default csv
         result = df.to_csv(index=False)

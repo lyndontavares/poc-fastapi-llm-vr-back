@@ -1,3 +1,4 @@
+import base64
 import requests
 import json
 
@@ -119,11 +120,14 @@ steps = [
     {"agent": "executor", "prompt": ""},
 
 
-    #############################
-    # Formatação Final em CSV
+    ############################################
+    # Formatação Final
     #  {"agent": "formatter", "prompt": "csv"}
-    #############################
-    {"agent": "formatter", "prompt": "csv"}
+    #  {"agent": "formatter", "prompt": "xlsx"}
+    #  {"agent": "formatter", "prompt": "table"}
+    #  {"agent": "formatter", "prompt": "json"}
+    ############################################
+    {"agent": "formatter", "prompt": "xlsx"}
 ]
 
 ############################################################
@@ -134,7 +138,7 @@ url = "http://127.0.0.1:8000/multi_agent_zip"
 files = {"file": open("dados.zip", "rb")}
 data = {"steps": json.dumps(steps)}
 result = requests.post(url, files=files, data=data)
-last_output = result.json()["results"][-1]["output"]
+
 
 ############################################################
 # Salvar o resultado completo em um arquivo JSON
@@ -144,11 +148,49 @@ with open("resultado.json", "w", encoding="utf-8") as f:
     json.dump(result.json(), f, ensure_ascii=False, indent=2)
 
 ############################################################
-# Salvar o resultado final em um arquivo CSV
+# Salvar o resultado final em um arquivo CSV/XLSX
 # RESPOSTA DO DESAFIO
 ############################################################
 
-filename = "VR_MENSAL_05_2025.csv"
-# Salvar em arquivo
-with open(filename, "w", encoding="utf-8") as f:
-    f.write(last_output)
+last_output = result.json()["results"][-1]
+
+# Garante que seja dict com "type" e "content"
+output_type = last_output["prompt"]
+content = last_output.get("output", "")
+
+# Definir nome base do arquivo
+basename = "VR_MENSAL_05_2025"
+
+if output_type == "csv":  # tabelas textuais
+    filename = f"{basename}.csv"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(content)
+
+elif output_type == "markdown" or output_type == "md":
+    filename = f"{basename}.md"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(content)
+
+elif output_type == "json":
+    filename = f"{basename}.json"
+    # Se já for string → parse e reformatar
+    try:
+        parsed = json.loads(content)
+    except Exception:
+        parsed = content
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(parsed, f, ensure_ascii=False, indent=2)
+
+elif output_type == "xlsx":
+    filename = f"{basename}.xlsx"
+    # Conteúdo esperado em base64
+    xlsx_bytes = base64.b64decode(content)
+    with open(filename, "wb") as f:
+        f.write(xlsx_bytes)
+
+else:  # fallback → texto simples
+    filename = f"{basename}.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(str(content))
+
+print(f"Arquivo salvo: {filename}")
