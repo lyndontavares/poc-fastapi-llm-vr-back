@@ -109,7 +109,7 @@ steps = [
      '''
 
         ### Passo 10: Listar Retorno
-        ### Com a consulta montada acima, conseguimos formatar o retorno para CSV.
+        ### Com a consulta montada acima, conseguimos formatar o retorno
 
         Retorne todo o conteúdo da tabela VR_MENSAL. 
         
@@ -122,6 +122,7 @@ steps = [
 
     ############################################
     # Formatação Final
+    #  Opções:
     #  {"agent": "formatter", "prompt": "csv"}
     #  {"agent": "formatter", "prompt": "xlsx"}
     #  {"agent": "formatter", "prompt": "table"}
