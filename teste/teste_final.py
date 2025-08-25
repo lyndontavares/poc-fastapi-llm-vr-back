@@ -127,7 +127,7 @@ steps = [
     #  {"agent": "formatter", "prompt": "table"}
     #  {"agent": "formatter", "prompt": "json"}
     ############################################
-    {"agent": "formatter", "prompt": "csv"}
+    {"agent": "formatter", "prompt": "xslx"}
 ]
 
 ############################################################
@@ -135,7 +135,7 @@ steps = [
 ############################################################
 
 url = "http://127.0.0.1:8000/multi_agent_zip"
-files = {"file": open("dados.zip", "rb")}
+files = {"file": open("planilhas.zip", "rb")}
 data = {"steps": json.dumps(steps)}
 result = requests.post(url, files=files, data=data)
 
