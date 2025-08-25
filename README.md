@@ -7,7 +7,7 @@ Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
 
 <div align="center">
 
-<img src="assets/grafo.png" alt="Fluxo Multi-Agent" width="600">
+<img src="assets/grafo.png" alt="Fluxo Multi-Agent" width="400">
 
 </div>
 
