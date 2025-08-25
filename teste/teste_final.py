@@ -40,7 +40,7 @@ steps = [
                 DESCONTO_PROFISSIONAL real,
                 OBS_GERAL texto.
 
-        ### PASSO 4: Limpar a tabela. Garantir que tabela estará vazia.
+        ### PASSO 5: Limpar a tabela. Garantir que tabela estará vazia.
         Remova todos os registros da tabela VR_MENSAL.
  
      '''},
