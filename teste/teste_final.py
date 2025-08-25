@@ -73,13 +73,12 @@ steps = [
     {"agent": "executor", "prompt": ""},
 
     #############################
-    # Preparação dos Dados Finais
+    # Preparação query principal
     #############################
     {"agent": "sql_generator", "prompt":
      '''
 
         ### Passo 7: Montar SQL principal com regras de cálculo do VR/VA
-        ### Revisar as fórmulas de cálculo:
 
         Iterar sobre o relacinamento a seguir:
             - ELEGIVEIS relaciona com tabela ADMISSAO_ABRIL pela coluna MATRICULA.
