@@ -64,7 +64,8 @@ steps = [
 
         - Deletar todos os registro de ELEGIVEIS com comunicado de desligamento igual a 'OK' e 
           data de desligamento menor ou igual 15/05/2025 na consuta por matricula em DESLIGADOS.
-        - Iterar sobre as bases de ESTAGIO, APRENDIZ, AFASTAMENTOS, EXTERIOR e remover todos registros correspondentes em ELEGIVEIS.
+        - Iterar sobre as bases de ESTAGIO, APRENDIZ, AFASTAMENTOS, EXTERIOR e remover todos 
+          os registros correspondentes em ELEGIVEIS.
         - Remover de ELEGIVEIS todos os colaboradores com situacao diferente de Trabalhando.
         - Remover de ELEGIVEIS todos os colaboradores sem SINDICATO
                
