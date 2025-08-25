@@ -7,7 +7,7 @@ Frontend: https://github.com/lyndontavares/poc-fastapi-llm-vr-front
 
 <div align="center">
 
-![](assets/grafor.png)
+![](assets/grafo.png)
 
 </div>
 
