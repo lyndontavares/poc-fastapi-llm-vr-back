@@ -90,7 +90,7 @@ steps = [
                 ADMISSAO vindo da coluna ADMISSAO da ADMISSAO_ABRIL,
                 SINDICATO vindo de SINDICATO da ELEGIVEIS, 
                 COMPETENCIA com valor fixo '01/05/2025',
-                DIAS com  DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ),
+                DIAS com DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ) ,
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
                 CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
