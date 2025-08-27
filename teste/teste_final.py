@@ -25,8 +25,13 @@ steps = [
         ### Passo 2: Neste etapa, procuramos manter a integridade dos dados
         adicione VALOR inteiro na tabela BASE_DIAS_UTEIS.
         atualize VALOR= 37.5 em BASE_DIAS_UTEIS quando SINDICATO contém ' SP '.
-        atualize VALOR= 35 em BASE_DIAS_UTEIS quando SINDICATO contém ' SP ' ou ' RS ' ou ' PR '.
-        
+        atualize VALOR= 35 em BASE_DIAS_UTEIS quando SINDICATO contém ' RJ ' ou ' RS ' ou ' PR '.
+
+        - Para tabela Afastamentos, na criação da tabela adicionar a coluna data_retorno e 
+          nos scripts de inserção considerar com a data identificada no final do texto da coluna 'SITUACAO' 
+          caso a mesma inicie seu conteúdo com 'retorno'. Exemplo: Considerar a data 11/06/2025 quando na coluna 
+          'SITUACAO' estiver preenchido com o texto 'retorno de férias + licença em 11/06'.
+                
         ### Passo 4: Criar tabela temporária para retorno da planilha de VR/VA mensal
         Crie uma tabela chamada VR_MENSAL. Somente se ela não existir. Com os seguintes campos:
                 MATRICULA inteiro,
@@ -82,7 +87,9 @@ steps = [
         ### Passo 7: Montar SQL principal com regras de cálculo do VR/VA
 
         Iterar sobre o relacionamento a seguir:
-            - ELEGIVEIS relaciona com tabela ADMISSAO_ABRIL pela coluna MATRICULA.
+            - ELEGIVEIS relaciona com tabela ADMISSAO_ABRIL pela coluna MATRICULA 
+              junta a tabela ADMISSAO_ABRIL à ELEGIVEIS, mantendo todos os registros da tabela ELEGIVEIS, 
+              mesmo que não haja correspondência na ADMISSAO_ABRIL.
             - ELEGIVEIS relaciona com tabela BASE_DIAS_UTEIS pela coluna SINDICATO.
 
             Inserir na tabela VR_MENSAL os seguintes campos:
@@ -90,7 +97,7 @@ steps = [
                 ADMISSAO vindo da coluna ADMISSAO da ADMISSAO_ABRIL,
                 SINDICATO vindo de SINDICATO da ELEGIVEIS, 
                 COMPETENCIA com valor fixo '01/05/2025',
-                DIAS com DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ) ,
+                DIAS com DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ), -- Arrendondar para numero inteiro, se total de férias for NULL ajuste para zero
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
                 CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
