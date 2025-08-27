@@ -72,7 +72,8 @@ steps = [
         - Iterar sobre as bases de ESTAGIO, APRENDIZ, AFASTAMENTOS, EXTERIOR e remover todos 
           os registros correspondentes em ELEGIVEIS.
         - Remover de ELEGIVEIS todos os colaboradores título cargo igual a DIRETOR.
-        - Remover de ELEGIVEIS todos os colaboradores com situacao diferente de Trabalhando.
+        - Remover de ELEGIVEIS todos os colaboradores com situacao diferente de Trabalhando 
+          e diferente de Férias.
         - Remover de ELEGIVEIS todos os colaboradores sem SINDICATO.
                
      '''},
@@ -97,7 +98,7 @@ steps = [
                 ADMISSAO vindo da coluna ADMISSAO da ADMISSAO_ABRIL,
                 SINDICATO vindo de SINDICATO da ELEGIVEIS, 
                 COMPETENCIA com valor fixo '01/05/2025',
-                DIAS com DIAS da BASE_DIAS_UTEIS - (( total de dias de férias / 30) * DIAS da BASE_DIAS_UTEIS ), -- Arrendondar para numero inteiro, se total de férias for NULL ajuste para zero
+                DIAS com ( DIAS da BASE_DIAS_UTEIS - BASE_DIAS_UTEIS * dias de férias / 30  , -- Arrendondar para numero inteiro, se total de férias for NULL ajuste para zero
                 VALOR_DIARIO_VR com VALOR de BASE_DIAS_UTEIS (2 decimais),
                 TOTAL_VR calculado como DIAS * VALOR_DIARIO_VR (2 decimais), 
                 CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
