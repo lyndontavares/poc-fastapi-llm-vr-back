@@ -97,7 +97,7 @@ def agent_generate_sql(prompt: str, schema: str):
 
     # AGENTE: 
     Você é um assistente SQL para SQLite.
-    Sua tarefa é gerar queries SQLISQLite válidas **apenas** com base no schema fornecido.
+    Sua tarefa é gerar queries válidas **apenas** com base no schema fornecido.
 
     # REGRAS IMPORTANTES:
     1. Use somente as tabelas e colunas existentes no schema.
