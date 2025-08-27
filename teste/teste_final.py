@@ -104,8 +104,11 @@ steps = [
                 CUSTO_EMPRESA calculado como TOTAL_VR * 0.8 (2 decimais),
                 DESCONTO_PROFISSIONAL calculado como TOTAL_VR * 0.2 (2 decimais),
                 OBS_GERAL com valor fixo 'VR MENSAL MAIO/2025';
-         
+
+        Remova de ELEGISVEIS todos com DIAS igual a zero.
+                 
         ### Passo 8: Após gerar o SQL, o agente faz a excução e atuliza base.
+
 
      '''},
     {"agent": "executor", "prompt": ""},
@@ -120,6 +123,7 @@ steps = [
         ### Passo 10: Listar Retorno
         ### Com a consulta montada acima, conseguimos formatar o retorno
 
+         
         Retorne todo o conteúdo da tabela VR_MENSAL. 
         
         ## Adicione alias para colunas coluna que contiver (_) trocando (_) por espaço.
