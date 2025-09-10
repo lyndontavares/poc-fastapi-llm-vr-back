@@ -173,7 +173,7 @@ output_type = last_output["prompt"]
 content = last_output.get("output", "")
 
 # Definir nome base do arquivo
-basename = "VR_MENSAL_05_2025"
+basename = "VR MENSAL 05.2025"
 
 if output_type == "csv":  # tabelas textuais
     filename = f"{basename}.csv"
